@@ -1,0 +1,71 @@
+[config]
+skip_core_tasks = true
+default_to_workspace = false
+
+[env]
+PROJ_NAME = "map-engine-prototype"
+
+[tasks.format]
+script = ['''
+#!/usr/bin/env bash -eux
+cargo fmt --all
+''']
+
+[tasks.lint]
+script = ['''
+#!/usr/bin/env bash -eux
+cargo clippy --workspace --all-targets --all-features
+''']
+
+[tasks.build-dev]
+script = ['''
+#!/usr/bin/env bash -eux
+wasm-pack build map_engine_wasm --target web --dev
+''']
+
+[tasks.build]
+script = ['''
+#!/usr/bin/env bash -eux
+wasm-pack build map_engine_wasm --target web
+''']
+
+[tasks.watch]
+script = ['''
+#!/usr/bin/env bash -eux
+cd map_engine_wasm; cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build --target web"
+''']
+
+[tasks.test]
+script = ['''
+#!/usr/bin/env bash -eux
+cargo test --workspace --all-targets --all-features
+''']
+
+[tasks.doc]
+script = ['''
+#!/usr/bin/env bash -eux
+cargo clean --doc
+cargo doc --no-deps --all-features
+''']
+
+[tasks.coverage]
+script = ['''
+#!/usr/bin/env bash -eux
+rm -rf target/debug/deps/${PROJ_NAME}-*
+
+export CARGO_INCREMENTAL=0
+export RUSTFLAGS="-Zinstrument-coverage"
+export LLVM_PROFILE_FILE="${PROJ_NAME}-%p-%m.profraw"
+
+cargo build --workspace --verbose
+cargo test --workspace --verbose
+
+grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing -o lcov.info
+''']
+
+[tasks.check-easy-panic]
+script = ['''
+#!/usr/bin/env bash -eux
+git ls-files |grep -E '.rs$' |(! xargs grep 'unimplemented!')
+git ls-files |grep -E '.rs$' |(! xargs grep 'todo!')
+''']
