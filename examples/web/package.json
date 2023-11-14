@@ -12,9 +12,12 @@
   },
   "license": "MIT OR Apache-2.0",
   "dependencies": {
-    "map-engine-prototype": "file:../../map_engine_wasm/pkg"
+    "map-engine-prototype": "file:../../map_engine_wasm/pkg",
+    "stats.js": "^0.17.0",
+    "three": "^0.158.0"
   },
   "devDependencies": {
+    "@types/three": "^0.158.2",
     "eslint": "^8.53.0",
     "eslint-config-reearth": "^0.3.0",
     "prettier": "^3.1.0",
