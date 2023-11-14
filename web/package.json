@@ -1,6 +1,7 @@
 {
   "name": "map-engine-prototype-examples-web",
   "version": "0.1.0",
+  "private": true,
   "scripts": {
     "start": "vite",
     "dev": "vite",
@@ -12,7 +13,7 @@
   },
   "license": "MIT OR Apache-2.0",
   "dependencies": {
-    "map-engine-prototype": "file:../../map_engine_wasm/pkg",
+    "map-engine-prototype": "file:../map_engine_wasm/pkg",
     "stats.js": "^0.17.0",
     "three": "^0.158.0"
   },
