@@ -1,53 +1,106 @@
 import initCore, { InitOutput } from "map-engine-prototype";
 import Stats from "stats.js";
-import { AxesHelper, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { AxesHelper, PerspectiveCamera, Renderer, Scene, WebGLRenderer } from "three";
+
+import { isWorker } from "./utils";
 
 export type Options = {
-  target: HTMLElement;
+  container?: HTMLElement;
+  canvas?: HTMLCanvasElement | OffscreenCanvas;
+  initialWidth?: number;
+  initialHeight?: number;
+  initialPixelRatio?: number;
+  disableAutoResize?: boolean;
   debug?: boolean;
+  scene?: Scene;
+  camera?: PerspectiveCamera;
+  renderer?: Renderer;
 };
 
-export default class View {
+export type Events = {
+  resize: () => void;
+};
+
+export default class ThreeView {
   scene: Scene;
   camera: PerspectiveCamera;
-  renderer: WebGLRenderer;
+  renderer: Renderer;
 
   _options: Options;
   _core: InitOutput | undefined;
   _stats: Stats | undefined;
-  _paused = false;
+  _disposed = false;
+  _events: {
+    [K in keyof Events]?: Events[K][];
+  } = {};
 
   constructor(options: Options) {
+    if (!options.container && !options.canvas && !options.renderer) {
+      throw new Error("Must provide either target, canvas, or renderer");
+    }
+
     this._options = options;
-    const { target } = options;
 
-    const renderer = new WebGLRenderer({
-      antialias: true,
-      alpha: true,
-    });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(target.offsetWidth, target.offsetHeight);
-    target.appendChild(renderer.domElement);
+    if (options.renderer) {
+      this.renderer = options.renderer;
+    } else {
+      const renderer = new WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        canvas: options.canvas,
+      });
+      this.renderer = renderer;
+      const { width = options.initialWidth, height = options.initialHeight } =
+        this._getCanvasSize() ?? {};
+      if (typeof width !== "number" || typeof height !== "number") {
+        throw new Error("Must provide initialWidth and initialHeight");
+      }
 
-    const axes = new AxesHelper();
-    const scene = new Scene();
-    scene.add(axes);
+      if (typeof options?.initialPixelRatio === "number" || !isWorker()) {
+        const defaultPixelRatio = isWorker() ? 1 : window.devicePixelRatio;
+        renderer.setPixelRatio(options.initialPixelRatio ?? defaultPixelRatio);
+      }
 
-    const camera = new PerspectiveCamera(50, target.offsetWidth / target.offsetHeight);
-    camera.position.set(1, 1, 1);
-    camera.lookAt(scene.position);
+      renderer.setSize(width, height, !isWorker());
+      if (options.container) {
+        options.container.appendChild(renderer.domElement);
+      }
+    }
 
-    window.addEventListener("resize", () => {
-      this.resize(target.offsetWidth, target.offsetHeight);
-    });
+    if (options.scene) {
+      this.scene = options.scene;
+    } else {
+      const axes = new AxesHelper();
+      const scene = new Scene();
+      scene.add(axes);
+      this.scene = scene;
+    }
 
-    this.scene = scene;
-    this.camera = camera;
-    this.renderer = renderer;
+    if (options.camera) {
+      this.camera = options.camera;
+    } else {
+      const { width = options.initialWidth, height = options.initialHeight } =
+        this._getCanvasSize() ?? {};
+      if (typeof width !== "number" || typeof height !== "number") {
+        throw new Error("Must provide initialWidth and initialHeight");
+      }
+
+      const camera = new PerspectiveCamera(50, width / height);
+      camera.position.set(1, 1, 1);
+      camera.lookAt(this.scene.position);
+      this.camera = camera;
+    }
+
+    if (!options.disableAutoResize && !isWorker()) {
+      window.addEventListener("resize", this._resize);
+    }
 
     if (options.debug) {
-      this._stats = new Stats();
-      target.appendChild(this._stats.dom);
+      const t = options.container || this.renderer.domElement.parentElement;
+      if (t) {
+        this._stats = new Stats();
+        t.appendChild(this._stats.dom);
+      }
     }
   }
 
@@ -57,32 +110,33 @@ export default class View {
     const core = await initCore();
     this._core = core;
 
-    this.startMainLoop();
+    this._startMainLoop();
   }
 
   dispose() {
-    this._paused = true;
-    this.renderer.dispose();
+    this._disposed = true;
+    if (!isWorker()) window.removeEventListener("resize", this._resize);
+    if ("dispose" in this.renderer && typeof this.renderer.dispose === "function") {
+      this.renderer.dispose();
+    }
   }
 
-  startMainLoop() {
-    const loop = () => {
-      if (this._paused) return;
-      this._stats?.begin();
+  resize = (width: number, height: number, pixelRatio?: number) => {
+    if (this._disposed) return;
 
-      if (this.update()) this.render();
-
-      this._stats?.end();
-      if (!this._paused) requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
-
-  resize(width: number, height: number) {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
-  }
+    this.renderer.setSize(width, height, !isWorker());
+    if (
+      typeof pixelRatio === "number" &&
+      "setPixelRatio" in this.renderer &&
+      typeof this.renderer.setPixelRatio === "function"
+    ) {
+      this.renderer.setPixelRatio(pixelRatio);
+    }
+
+    this._emit("resize");
+  };
 
   /** Returns true if the scene was updated and needs to be rendered. */
   update(): boolean {
@@ -92,4 +146,54 @@ export default class View {
   render() {
     this.renderer.render(this.scene, this.camera);
   }
+
+  on<K extends keyof Events>(event: K, callback: Events[K]) {
+    if (!this._events[event]) this._events[event] = [];
+    this._events[event]?.push(callback);
+  }
+
+  off<K extends keyof Events>(event: K, callback: Events[K]) {
+    this._events[event] = this._events[event]?.filter(c => c !== callback);
+  }
+
+  _emit<K extends keyof Events>(event: K, ...args: Parameters<Events[K]>) {
+    this._events[event]?.forEach(c => (c as (...args: any[]) => any)(...args));
+  }
+
+  _startMainLoop() {
+    const loop = () => {
+      if (this._disposed) return;
+      this._stats?.begin();
+
+      if (this.update()) this.render();
+
+      this._stats?.end();
+      if (!this._disposed) requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  _getCanvasSize(): { width: number; height: number } | undefined {
+    const element =
+      this._options.container ??
+      this.renderer.domElement?.parentElement ??
+      this.renderer.domElement;
+    if (!element) return;
+
+    const width = element.offsetWidth;
+    const height = element.offsetHeight;
+    if (typeof width !== "number" && typeof height !== "number") {
+      return;
+    }
+
+    return { width, height };
+  }
+
+  _resize = () => {
+    const { width, height } = this._getCanvasSize() ?? {};
+    if (!width || !height) return;
+
+    const pixelRatio = isWorker() ? undefined : window.devicePixelRatio;
+    this.resize(width, height, pixelRatio);
+  };
 }

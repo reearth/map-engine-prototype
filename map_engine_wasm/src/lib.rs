@@ -18,5 +18,8 @@ pub fn greet() {
 pub fn start() {
     utils::set_panic_hook();
 
-    log(&format!("Hello world?! {}", &map_engine_core::add(2, 3)));
+    log(&format!(
+        "Hello world!!!!!! {}",
+        &map_engine_core::add(2, 3)
+    ));
 }

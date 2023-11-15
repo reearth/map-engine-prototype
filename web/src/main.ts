@@ -1,10 +1,10 @@
-import View from "./lib";
+import ThreeView from "./lib";
 
-const target = document.getElementById("root");
-if (!target) throw new Error("Root element not found");
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+if (!canvas) throw new Error("canvas element not found");
 
-const view = new View({
-  target,
+const view = new ThreeView({
+  canvas,
   debug: true,
 });
 
