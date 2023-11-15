@@ -1,6 +1,6 @@
-import initCore, { InitOutput } from "map-engine-prototype";
+import initCore, { type InitOutput } from "map-engine-prototype";
 import Stats from "stats.js";
-import { AxesHelper, PerspectiveCamera, Renderer, Scene, WebGLRenderer } from "three";
+import { AxesHelper, PerspectiveCamera, Scene, WebGLRenderer, type Renderer } from "three";
 
 import { isWorker } from "./utils";
 
