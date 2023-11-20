@@ -2,6 +2,21 @@
 
 3D globe map engine prototype built on Rust + WebAssembly (WIP)
 
+## Development
+
+### Install prerequisites
+
+```console
+cargo install cargo-make
+cargo install cargo-watch
+```
+
+### Run with hot-reload
+
+```console
+cargo make watch
+```
+
 ## License
 
 Licensed under either of
