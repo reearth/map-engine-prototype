@@ -4,7 +4,7 @@
 
 ## Development
 
-## Install toolchains
+### Install toolchains
 
 - Rust (stable)
 - Node.js (LTS)
@@ -20,6 +20,10 @@ cargo install cargo-watch
 
 ```console
 cargo make dev
+```
+
+```console
+open http://localhost:5174/
 ```
 
 ## License
