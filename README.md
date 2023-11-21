@@ -4,6 +4,11 @@
 
 ## Development
 
+## Install toolchains
+
+- Rust (stable)
+- Node.js (LTS)
+
 ### Install prerequisites
 
 ```console
@@ -14,7 +19,7 @@ cargo install cargo-watch
 ### Run with hot-reload
 
 ```console
-cargo make watch
+cargo make dev
 ```
 
 ## License
