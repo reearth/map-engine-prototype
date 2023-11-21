@@ -17,22 +17,35 @@ script = ['''
 cargo clippy --workspace --all-targets --all-features
 ''']
 
-[tasks.build-dev]
-script = ['''
-#!/usr/bin/env bash -eux
-wasm-pack build map_engine_wasm --target web --dev
-''']
-
 [tasks.build]
 script = ['''
 #!/usr/bin/env bash -eux
+cd map_engine_wasm
 wasm-pack build map_engine_wasm --target web
 ''']
+
+[tasks.build-dev]
+script = ['''
+#!/usr/bin/env bash -eux
+cd map_engine_wasm
+wasm-pack build map_engine_wasm --target web --dev
+''']
+
+[tasks.dev]
+run_task = { name = ["watch", "dev-web"], parallel = true }
 
 [tasks.watch]
 script = ['''
 #!/usr/bin/env bash -eux
-cd map_engine_wasm; cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build --target web"
+cd map_engine_wasm
+cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build --target web"
+''']
+
+[tasks.dev-web]
+script = ['''
+#!/usr/bin/env bash -eux
+cd web
+npm i && npm run dev
 ''']
 
 [tasks.test]
