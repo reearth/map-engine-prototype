@@ -22,10 +22,6 @@ cargo install cargo-watch
 cargo make dev
 ```
 
-```console
-open http://localhost:5174/
-```
-
 ## License
 
 Licensed under either of

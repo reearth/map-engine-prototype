@@ -8,6 +8,7 @@ export default defineConfig({
     plugins: [wasm(), topLevelAwait()],
   },
   server: {
+    open: true,
     fs: {
       allow: [".."],
     },
