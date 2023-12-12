@@ -1,6 +1,9 @@
 mod utils;
 
-use std::sync::{Mutex, OnceLock};
+use std::{
+    collections::HashMap,
+    sync::{Mutex, OnceLock},
+};
 
 use map_engine_ecs::App;
 use wasm_bindgen::prelude::*;
@@ -11,21 +14,53 @@ extern "C" {
     fn log(s: &str);
 }
 
+#[wasm_bindgen(getter_with_clone)]
+pub struct Core {
+    pub id: String,
+}
+
+#[wasm_bindgen]
+impl Core {
+    #[wasm_bindgen(constructor)]
+    pub fn new(id: String) -> Self {
+        Self { id }
+    }
+
+    pub fn start(&self) {
+        init(self.id.clone());
+    }
+
+    pub fn update(&self) {
+        update(self.id.clone());
+    }
+}
+
 #[wasm_bindgen(start)]
 pub fn start() {
     utils::set_panic_hook();
     log("init map_engine_wasm");
-
-    // init app
-    let _ = app();
 }
 
-#[wasm_bindgen]
-pub fn update() {
-    app().lock().unwrap().update();
+pub fn init(id: String) {
+    app(id, |_| ());
 }
 
-fn app() -> &'static Mutex<App> {
-    static APP: OnceLock<Mutex<App>> = OnceLock::new();
-    APP.get_or_init(|| Mutex::new(App::new()))
+pub fn update(id: String) {
+    app(id, |a| a.update());
+}
+
+fn app(id: String, f: impl FnOnce(&mut App)) {
+    static APP: OnceLock<Mutex<HashMap<String, Mutex<App>>>> = OnceLock::new();
+    let mut map = APP
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .unwrap();
+
+    let app = map
+        .entry(id.to_string())
+        .or_insert_with(|| Mutex::new(App::new()))
+        .get_mut()
+        .unwrap();
+
+    f(app);
 }

@@ -1,4 +1,4 @@
-import { start, update } from "map-engine-prototype";
+import initCore, { Core } from "map-engine-prototype";
 import Stats from "stats.js";
 import { AxesHelper, PerspectiveCamera, Scene, WebGLRenderer, type Renderer } from "three";
 
@@ -26,6 +26,7 @@ export default class ThreeView {
   camera: PerspectiveCamera;
   renderer: Renderer;
 
+  _core: Core | undefined;
   _options: Options;
   _stats: Stats | undefined;
   _disposed = false;
@@ -104,7 +105,12 @@ export default class ThreeView {
   }
 
   async init() {
-    start();
+    if (this._core) return;
+
+    await initCore();
+
+    this._core = new Core(newId());
+    this._core.start();
     this._startMainLoop();
   }
 
@@ -135,7 +141,7 @@ export default class ThreeView {
 
   /** Returns true if the scene was updated and needs to be rendered. */
   update(): boolean {
-    update();
+    this._core?.update();
     return true;
   }
 
@@ -192,4 +198,8 @@ export default class ThreeView {
     const pixelRatio = isWorker() ? undefined : window.devicePixelRatio;
     this.resize(width, height, pixelRatio);
   };
+}
+
+function newId() {
+  return Math.random().toString(36).slice(2);
 }
