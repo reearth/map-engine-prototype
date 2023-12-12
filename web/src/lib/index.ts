@@ -1,4 +1,4 @@
-import initCore, { type InitOutput } from "map-engine-prototype";
+import { start, update } from "map-engine-prototype";
 import Stats from "stats.js";
 import { AxesHelper, PerspectiveCamera, Scene, WebGLRenderer, type Renderer } from "three";
 
@@ -27,7 +27,6 @@ export default class ThreeView {
   renderer: Renderer;
 
   _options: Options;
-  _core: InitOutput | undefined;
   _stats: Stats | undefined;
   _disposed = false;
   _events: {
@@ -105,11 +104,7 @@ export default class ThreeView {
   }
 
   async init() {
-    if (this._core) return;
-
-    const core = await initCore();
-    this._core = core;
-
+    start();
     this._startMainLoop();
   }
 
@@ -140,6 +135,7 @@ export default class ThreeView {
 
   /** Returns true if the scene was updated and needs to be rendered. */
   update(): boolean {
+    update();
     return true;
   }
 

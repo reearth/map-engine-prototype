@@ -20,6 +20,7 @@ wasm-bindgen = "0.2.84"
 console_error_panic_hook = { version = "0.1.7", optional = true }
 js-sys = "0.3.65"
 map_engine_core = { path = "../map_engine_core" }
+map_engine_ecs = { path = "../map_engine_ecs" }
 
 [dependencies.web-sys]
 version = "0.3.65"
