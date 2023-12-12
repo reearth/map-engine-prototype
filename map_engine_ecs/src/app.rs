@@ -1,13 +1,18 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
+use bevy_input::InputPlugin;
 use bevy_log::prelude::*;
 
 pub struct Plugin;
 
 impl bevy_app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(bevy_log::LogPlugin::default());
+        app.add_plugins(InputPlugin);
+
         app.add_systems(Startup, startup);
         app.add_systems(Update, movement);
+        app.add_systems(Update, log_keyboard_events);
     }
 }
 
@@ -33,5 +38,13 @@ fn movement(mut query: Query<(&mut Position, &Velocity)>) {
         position.y += velocity.y;
 
         info!("movement - position ({}, {})", &position.x, &position.y);
+    }
+}
+
+fn log_keyboard_events(
+    mut keyboard_input_events: EventReader<bevy_input::keyboard::KeyboardInput>,
+) {
+    for event in keyboard_input_events.iter() {
+        info!("keyboard event: {:?}", event);
     }
 }

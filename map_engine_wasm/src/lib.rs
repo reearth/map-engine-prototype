@@ -42,7 +42,16 @@ pub fn start() {
 }
 
 pub fn init(id: String) {
-    app(id, |_| ());
+    app(id, |a| {
+        // debug
+        a.trigger_event(map_engine_ecs::Event::Keyboard(
+            map_engine_ecs::KeyboardEvent {
+                scan_code: 0,
+                key_code: Some(map_engine_ecs::KeyCode::A),
+                state: map_engine_ecs::ButtonState::Pressed,
+            },
+        ));
+    });
 }
 
 pub fn update(id: String) {
