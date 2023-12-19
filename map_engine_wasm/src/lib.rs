@@ -7,6 +7,7 @@ use std::{
 
 use map_engine_ecs::App;
 use wasm_bindgen::prelude::*;
+mod event;
 
 #[wasm_bindgen]
 extern "C" {
@@ -33,6 +34,11 @@ impl Core {
     pub fn update(&self) {
         update(self.id.clone());
     }
+
+    #[wasm_bindgen(js_name = readEvents)]
+    pub fn read_events(&self) -> Result<JsValue, serde_wasm_bindgen::Error> {
+        read_events(self.id.clone())
+    }
 }
 
 #[wasm_bindgen(start)]
@@ -58,7 +64,20 @@ pub fn update(id: String) {
     app(id, |a| a.update());
 }
 
-fn app(id: String, f: impl FnOnce(&mut App)) {
+pub fn read_events(id: String) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    app(id, |a| {
+        let mut events = a.read_events();
+        let mut js_events = Vec::new();
+
+        while let Some(ev) = events.pop() {
+            js_events.push(event::ObjectEvent::from(ev));
+        }
+
+        serde_wasm_bindgen::to_value(&js_events)
+    })
+}
+
+fn app<T>(id: String, f: impl FnOnce(&mut App) -> T) -> T {
     static APP: OnceLock<Mutex<HashMap<String, Mutex<App>>>> = OnceLock::new();
     let mut map = APP
         .get_or_init(|| Mutex::new(HashMap::new()))
@@ -71,5 +90,5 @@ fn app(id: String, f: impl FnOnce(&mut App)) {
         .get_mut()
         .unwrap();
 
-    f(app);
+    f(app)
 }

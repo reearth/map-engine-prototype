@@ -142,6 +142,12 @@ export default class ThreeView {
   /** Returns true if the scene was updated and needs to be rendered. */
   update(): boolean {
     this._core?.update();
+
+    const events = this._core?.readEvents();
+    if (Array.isArray(events) && events.length > 0) {
+      console.log("events", events);
+    }
+
     return true;
   }
 

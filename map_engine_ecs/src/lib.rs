@@ -1,5 +1,8 @@
 mod app;
+mod comp;
 mod event;
+
+pub use comp::{Object, ObjectEvent, ObjectEventType, Transform};
 
 pub use event::*;
 
@@ -23,8 +26,12 @@ impl App {
         self.app.update();
     }
 
-    pub fn trigger_event(&mut self, ev: Event) {
+    pub fn trigger_event(&mut self, ev: event::Event) {
         event::trigger_event(&mut self.app, self.win, ev);
+    }
+
+    pub fn read_events(&mut self) -> Vec<ObjectEvent> {
+        comp::read_events(&mut self.app)
     }
 }
 
