@@ -1,6 +1,5 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use bevy_input::InputPlugin;
 use bevy_log::prelude::*;
 use bevy_time::TimePlugin;
 
@@ -11,9 +10,9 @@ impl bevy_app::Plugin for Plugin {
         // bevy plugins
         app.add_plugins(bevy_log::LogPlugin::default());
         app.add_plugins(TimePlugin);
-        app.add_plugins(InputPlugin);
 
         // custom plugins
+        app.add_plugins(super::input::InputPlugin);
         app.add_plugins(super::event::EventPlugin);
         app.add_plugins(super::object::ObjectPlugin);
         app.add_plugins(super::camera::CameraPlugin);
@@ -21,6 +20,8 @@ impl bevy_app::Plugin for Plugin {
         // custom systems
         app.add_systems(Startup, startup);
         app.add_systems(Update, update);
+
+        // example
         app.add_systems(Update, log_keyboard_events);
     }
 }

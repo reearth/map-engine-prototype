@@ -23,7 +23,7 @@ impl bevy_app::Plugin for CameraPlugin {
 }
 
 fn startup(mut commands: Commands) {
-    let translation = Vec3::new(-2.0, 0.0, 0.0);
+    let translation = Vec3::new(-1000.0, 0.0, 0.0);
     commands.spawn(CameraBundle {
         marker: CameraMerker,
         transform: Transform::from_translation(translation),

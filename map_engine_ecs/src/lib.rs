@@ -30,8 +30,8 @@ impl App {
         self.app.update();
     }
 
-    pub fn trigger_event(&mut self, ev: input::Event) {
-        input::trigger_event(&mut self.app, self.win, ev);
+    pub fn trigger_event(&mut self, ev: input::Input) {
+        input::trigger_event(&mut self.app.world, self.win, ev);
     }
 
     pub fn read_events(&mut self) -> Option<Events> {

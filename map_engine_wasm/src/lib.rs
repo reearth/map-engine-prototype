@@ -1,3 +1,5 @@
+mod event;
+mod input;
 mod utils;
 
 use std::{
@@ -7,9 +9,9 @@ use std::{
 
 use map_engine_ecs::App;
 use wasm_bindgen::prelude::*;
-mod event;
 
 pub use event::*;
+pub use input::*;
 
 #[wasm_bindgen]
 extern "C" {
@@ -41,6 +43,11 @@ impl Core {
     pub fn read_events(&self) -> Option<Events> {
         read_events(self.id.clone())
     }
+
+    #[wasm_bindgen]
+    pub fn input(&self, i: Input) {
+        input(self.id.clone(), i);
+    }
 }
 
 #[wasm_bindgen(start)]
@@ -52,8 +59,8 @@ pub fn start() {
 pub fn init(id: String) {
     app(id, |a| {
         // debug
-        a.trigger_event(map_engine_ecs::Event::Keyboard(
-            map_engine_ecs::KeyboardEvent {
+        a.trigger_event(map_engine_ecs::Input::Keyboard(
+            map_engine_ecs::KeyboardInput {
                 scan_code: 0,
                 key_code: Some(map_engine_ecs::KeyCode::A),
                 state: map_engine_ecs::ButtonState::Pressed,
@@ -68,6 +75,10 @@ pub fn update(id: String) {
 
 pub fn read_events(id: String) -> Option<Events> {
     app(id, |a| a.read_events().map(|ev| ev.into()))
+}
+
+pub fn input(_id: String, _input: Input) {
+    // app(id, |a| a.trigger_event(ev.into()));
 }
 
 fn app<T>(id: String, f: impl FnOnce(&mut App) -> T) -> T {

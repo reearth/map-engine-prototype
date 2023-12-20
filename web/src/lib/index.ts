@@ -1,8 +1,9 @@
 import initCore, { Core } from "map-engine-prototype";
 import Stats from "stats.js";
-import { AxesHelper, PerspectiveCamera, Scene, WebGLRenderer, type Renderer } from "three";
+import { PerspectiveCamera, Scene, WebGLRenderer, type Renderer } from "three";
 
 import { processEvent } from "./event";
+import { initScene } from "./example";
 import { isWorker } from "./utils";
 
 export type Options = {
@@ -47,7 +48,7 @@ export default class ThreeView {
     } else {
       const renderer = new WebGLRenderer({
         antialias: true,
-        alpha: true,
+        // alpha: true,
         canvas: options.canvas,
       });
       this.renderer = renderer;
@@ -71,9 +72,8 @@ export default class ThreeView {
     if (options.scene) {
       this.scene = options.scene;
     } else {
-      const axes = new AxesHelper();
       const scene = new Scene();
-      scene.add(axes);
+      initScene(scene);
       this.scene = scene;
     }
 
@@ -87,8 +87,6 @@ export default class ThreeView {
       }
 
       const camera = new PerspectiveCamera(50, width / height);
-      camera.position.set(1, 1, 1);
-      camera.lookAt(this.scene.position);
       this.camera = camera;
     }
 
