@@ -1,10 +1,14 @@
 mod app;
-mod comp;
+mod camera;
 mod event;
+mod input;
+mod object;
+mod transform;
 
-pub use comp::{Object, ObjectEvent, ObjectEventType, Transform};
+pub use event::{ComponentEvent, EntityEvent, Events};
+pub use transform::*;
 
-pub use event::*;
+pub use input::*;
 
 pub struct App {
     app: bevy_app::App,
@@ -26,12 +30,13 @@ impl App {
         self.app.update();
     }
 
-    pub fn trigger_event(&mut self, ev: event::Event) {
-        event::trigger_event(&mut self.app, self.win, ev);
+    pub fn trigger_event(&mut self, ev: input::Event) {
+        input::trigger_event(&mut self.app, self.win, ev);
     }
 
-    pub fn read_events(&mut self) -> Vec<ObjectEvent> {
-        comp::read_events(&mut self.app)
+    pub fn read_events(&mut self) -> Option<Events> {
+        let ev = self.app.world.get_resource::<event::EventStore>()?;
+        Some(ev.events(&self.app.world))
     }
 }
 

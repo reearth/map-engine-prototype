@@ -1,8 +1,12 @@
-use bevy_ecs::component::Component;
+use bevy_ecs::{bundle::Bundle, component::Component};
 
-use super::Object;
+use crate::Transform;
 
 #[derive(Component)]
-pub struct Camera {
-    pub object: Object,
+pub struct CameraMerker;
+
+#[derive(Bundle)]
+pub struct CameraBundle {
+    pub marker: CameraMerker,
+    pub transform: Transform,
 }

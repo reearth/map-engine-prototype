@@ -1,22 +1,17 @@
 use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize)]
-pub struct ObjectEvent {
+pub struct Events {
+    pub camera_transform_updated: Option<Transform>,
+    pub object_transform_updated: Vec<ObjectEvent<Transform>>,
+    pub object_removed: Vec<ObjectEvent>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ObjectEvent<T = ()> {
     pub ind: u32,
     pub gen: u32,
-    pub event_type: ObjectEventType,
-    pub object: Option<Object>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub enum ObjectEventType {
-    ObjectRemoved,
-    ObjectChanged,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct Object {
-    pub transform: Transform,
+    pub object: Option<T>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -26,30 +21,36 @@ pub struct Transform {
     scale: Vec<f32>,
 }
 
-impl<'a> From<map_engine_ecs::ObjectEvent<'a>> for ObjectEvent {
-    fn from(ev: map_engine_ecs::ObjectEvent) -> Self {
+impl<'a> From<map_engine_ecs::Events<'a>> for Events {
+    fn from(ev: map_engine_ecs::Events) -> Self {
+        Self {
+            camera_transform_updated: ev.camera_transform_updated.map(|ev| (*ev).into()),
+            object_transform_updated: ev
+                .object_transform_updated
+                .into_iter()
+                .map(|ev| ev.into())
+                .collect(),
+            object_removed: ev.object_removed.into_iter().map(|ev| ev.into()).collect(),
+        }
+    }
+}
+
+impl<'a, T, K: Into<T> + Clone> From<map_engine_ecs::ComponentEvent<'a, K>> for ObjectEvent<T> {
+    fn from(ev: map_engine_ecs::ComponentEvent<'a, K>) -> Self {
         Self {
             ind: ev.ind,
             gen: ev.gen,
-            event_type: ev.event_type.into(),
-            object: ev.object.map(|o| o.clone().into()),
+            object: ev.comp.map(|o| o.clone().into()),
         }
     }
 }
 
-impl From<map_engine_ecs::ObjectEventType> for ObjectEventType {
-    fn from(ev: map_engine_ecs::ObjectEventType) -> Self {
-        match ev {
-            map_engine_ecs::ObjectEventType::ObjectRemoved => Self::ObjectRemoved,
-            map_engine_ecs::ObjectEventType::ObjectChanged => Self::ObjectChanged,
-        }
-    }
-}
-
-impl From<map_engine_ecs::Object> for Object {
-    fn from(o: map_engine_ecs::Object) -> Self {
+impl From<map_engine_ecs::EntityEvent> for ObjectEvent {
+    fn from(ev: map_engine_ecs::EntityEvent) -> Self {
         Self {
-            transform: o.transform.into(),
+            ind: ev.ind,
+            gen: ev.gen,
+            object: None,
         }
     }
 }

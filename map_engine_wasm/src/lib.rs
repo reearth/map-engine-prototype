@@ -66,14 +66,8 @@ pub fn update(id: String) {
 
 pub fn read_events(id: String) -> Result<JsValue, serde_wasm_bindgen::Error> {
     app(id, |a| {
-        let mut events = a.read_events();
-        let mut js_events = Vec::new();
-
-        while let Some(ev) = events.pop() {
-            js_events.push(event::ObjectEvent::from(ev));
-        }
-
-        serde_wasm_bindgen::to_value(&js_events)
+        let events: Option<event::Events> = a.read_events().map(|ev| ev.into());
+        serde_wasm_bindgen::to_value(&events)
     })
 }
 

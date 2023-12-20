@@ -144,8 +144,14 @@ export default class ThreeView {
     this._core?.update();
 
     const events = this._core?.readEvents();
-    if (Array.isArray(events) && events.length > 0) {
-      console.log("events", events);
+    if (events) {
+      for (const [k, v] of Object.entries(events)) {
+        if (Array.isArray(v)) {
+          if (v.length > 0) console.log("event", k, v);
+        } else {
+          console.log("event", k, v);
+        }
+      }
     }
 
     return true;
