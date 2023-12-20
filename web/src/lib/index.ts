@@ -2,6 +2,7 @@ import initCore, { Core } from "map-engine-prototype";
 import Stats from "stats.js";
 import { AxesHelper, PerspectiveCamera, Scene, WebGLRenderer, type Renderer } from "three";
 
+import { processEvent } from "./event";
 import { isWorker } from "./utils";
 
 export type Options = {
@@ -145,13 +146,7 @@ export default class ThreeView {
 
     const events = this._core?.readEvents();
     if (events) {
-      for (const [k, v] of Object.entries(events)) {
-        if (Array.isArray(v)) {
-          if (v.length > 0) console.log("event", k, v);
-        } else {
-          console.log("event", k, v);
-        }
-      }
+      processEvent(this.scene, this.camera, events);
     }
 
     return true;

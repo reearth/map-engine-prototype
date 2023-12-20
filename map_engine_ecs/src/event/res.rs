@@ -23,14 +23,17 @@ impl EventStore {
         if let Some(e) = self.camera_transform_updated {
             events.camera_transform_updated = world.get::<Transform>(e);
         }
+
         for e in self.object_transform_updated.iter() {
-            events
-                .object_transform_updated
-                .push(ComponentEvent::new(*e, world));
+            if let Some(e) = ComponentEvent::new(*e, world) {
+                events.object_transform_updated.push(e);
+            }
         }
+
         for e in self.object_removed.iter() {
             events.object_removed.push((*e).into());
         }
+
         events
     }
 }

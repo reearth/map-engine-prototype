@@ -13,7 +13,7 @@ pub struct Events<'a> {
 pub struct ComponentEvent<'a, T = ()> {
     pub ind: u32,
     pub gen: u32,
-    pub comp: Option<&'a T>,
+    pub comp: &'a T,
 }
 
 #[derive(Debug)]
@@ -32,11 +32,17 @@ impl From<Entity> for EntityEvent {
 }
 
 impl<'a, T: Component> ComponentEvent<'a, T> {
-    pub fn new(e: Entity, world: &'a World) -> Self {
+    pub fn new(e: Entity, world: &'a World) -> Option<Self> {
+        world
+            .get::<T>(e)
+            .map(|comp| Self::new_with_component(e, comp))
+    }
+
+    pub fn new_with_component(e: Entity, comp: &'a T) -> Self {
         Self {
             ind: e.index(),
             gen: e.generation(),
-            comp: world.get::<T>(e),
+            comp,
         }
     }
 }

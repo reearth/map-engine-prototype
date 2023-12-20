@@ -1,24 +1,42 @@
 use serde::Serialize;
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen(getter_with_clone)]
 #[derive(Debug, Clone, Serialize)]
 pub struct Events {
     pub camera_transform_updated: Option<Transform>,
-    pub object_transform_updated: Vec<ObjectEvent<Transform>>,
+    pub object_transform_updated: Vec<ObjectTransformEvent>,
     pub object_removed: Vec<ObjectEvent>,
 }
 
+#[wasm_bindgen]
 #[derive(Debug, Clone, Serialize)]
-pub struct ObjectEvent<T = ()> {
+pub struct ObjectEvent {
     pub ind: u32,
     pub gen: u32,
-    pub object: Option<T>,
 }
 
+#[wasm_bindgen]
 #[derive(Debug, Clone, Serialize)]
+pub struct ObjectTransformEvent {
+    pub ind: u32,
+    pub gen: u32,
+    pub transform: Transform,
+}
+
+#[wasm_bindgen]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub struct Transform {
-    translation: Vec<f32>,
-    quaternion: Vec<f32>,
-    scale: Vec<f32>,
+    pub tx: f32,
+    pub ty: f32,
+    pub tz: f32,
+    pub qx: f32,
+    pub qy: f32,
+    pub qz: f32,
+    pub qw: f32,
+    pub sx: f32,
+    pub sy: f32,
+    pub sz: f32,
 }
 
 impl<'a> From<map_engine_ecs::Events<'a>> for Events {
@@ -35,22 +53,23 @@ impl<'a> From<map_engine_ecs::Events<'a>> for Events {
     }
 }
 
-impl<'a, T, K: Into<T> + Clone> From<map_engine_ecs::ComponentEvent<'a, K>> for ObjectEvent<T> {
-    fn from(ev: map_engine_ecs::ComponentEvent<'a, K>) -> Self {
-        Self {
-            ind: ev.ind,
-            gen: ev.gen,
-            object: ev.comp.map(|o| o.clone().into()),
-        }
-    }
-}
-
 impl From<map_engine_ecs::EntityEvent> for ObjectEvent {
     fn from(ev: map_engine_ecs::EntityEvent) -> Self {
         Self {
             ind: ev.ind,
             gen: ev.gen,
-            object: None,
+        }
+    }
+}
+
+impl<'a> From<map_engine_ecs::ComponentEvent<'a, map_engine_ecs::Transform>>
+    for ObjectTransformEvent
+{
+    fn from(ev: map_engine_ecs::ComponentEvent<'a, map_engine_ecs::Transform>) -> Self {
+        Self {
+            ind: ev.ind,
+            gen: ev.gen,
+            transform: (*ev.comp).into(),
         }
     }
 }
@@ -58,9 +77,16 @@ impl From<map_engine_ecs::EntityEvent> for ObjectEvent {
 impl From<map_engine_ecs::Transform> for Transform {
     fn from(t: map_engine_ecs::Transform) -> Self {
         Self {
-            translation: vec![t.translation.x, t.translation.y, t.translation.z],
-            quaternion: vec![t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w],
-            scale: vec![t.scale.x, t.scale.y, t.scale.z],
+            tx: t.translation.x,
+            ty: t.translation.y,
+            tz: t.translation.z,
+            qx: t.rotation.x,
+            qy: t.rotation.y,
+            qz: t.rotation.z,
+            qw: t.rotation.w,
+            sx: t.scale.x,
+            sy: t.scale.y,
+            sz: t.scale.z,
         }
     }
 }

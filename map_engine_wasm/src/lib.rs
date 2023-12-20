@@ -9,6 +9,8 @@ use map_engine_ecs::App;
 use wasm_bindgen::prelude::*;
 mod event;
 
+pub use event::*;
+
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
@@ -36,7 +38,7 @@ impl Core {
     }
 
     #[wasm_bindgen(js_name = readEvents)]
-    pub fn read_events(&self) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    pub fn read_events(&self) -> Option<Events> {
         read_events(self.id.clone())
     }
 }
@@ -64,11 +66,8 @@ pub fn update(id: String) {
     app(id, |a| a.update());
 }
 
-pub fn read_events(id: String) -> Result<JsValue, serde_wasm_bindgen::Error> {
-    app(id, |a| {
-        let events: Option<event::Events> = a.read_events().map(|ev| ev.into());
-        serde_wasm_bindgen::to_value(&events)
-    })
+pub fn read_events(id: String) -> Option<Events> {
+    app(id, |a| a.read_events().map(|ev| ev.into()))
 }
 
 fn app<T>(id: String, f: impl FnOnce(&mut App) -> T) -> T {

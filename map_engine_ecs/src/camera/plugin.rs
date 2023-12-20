@@ -9,7 +9,6 @@ use bevy_ecs::{
     query::Changed,
     system::{Commands, Query, ResMut},
 };
-// use bevy_time::Time;
 
 #[derive(Debug)]
 pub struct CameraPlugin;
@@ -17,7 +16,7 @@ pub struct CameraPlugin;
 impl bevy_app::Plugin for CameraPlugin {
     fn build(&self, app: &mut bevy_app::App) {
         app.add_systems(Startup, startup)
-            .add_systems(Update, example)
+            .add_systems(Update, super::system::example)
             .add_systems(PostUpdate, commit);
     }
 }
@@ -27,11 +26,6 @@ fn startup(mut commands: Commands) {
         marker: CameraMerker,
         transform: Transform::default(),
     });
-}
-
-fn example(/* time: Res<Time>, */ mut query: Query<(&mut Transform, &CameraMerker)>) {
-    let (mut transform, _) = query.single_mut();
-    transform.translation.x += 1.0;
 }
 
 fn commit(
