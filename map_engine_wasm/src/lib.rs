@@ -45,7 +45,7 @@ impl Core {
     }
 
     #[wasm_bindgen]
-    pub fn input(&self, i: Input) {
+    pub fn input(&self, i: JsValue) {
         input(self.id.clone(), i);
     }
 }
@@ -77,8 +77,18 @@ pub fn read_events(id: String) -> Option<Events> {
     app(id, |a| a.read_events().map(|ev| ev.into()))
 }
 
-pub fn input(_id: String, _input: Input) {
-    // app(id, |a| a.trigger_event(ev.into()));
+pub fn input(id: String, input: JsValue) {
+    app(id, |a| {
+        let Some(input) = Input::from(input) else {
+            return;
+        };
+
+        let Some(input) = input.into_ecs_input() else {
+            return;
+        };
+
+        a.trigger_event(input);
+    });
 }
 
 fn app<T>(id: String, f: impl FnOnce(&mut App) -> T) -> T {

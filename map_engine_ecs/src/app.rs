@@ -22,7 +22,7 @@ impl bevy_app::Plugin for Plugin {
         app.add_systems(Update, update);
 
         // example
-        app.add_systems(Update, log_keyboard_events);
+        app.add_systems(Update, log_mouse_move_event);
     }
 }
 
@@ -34,10 +34,8 @@ fn update() {
     // TODO
 }
 
-fn log_keyboard_events(
-    mut keyboard_input_events: EventReader<bevy_input::keyboard::KeyboardInput>,
-) {
-    for event in keyboard_input_events.read() {
-        info!("keyboard event: {:?}", event);
+fn log_mouse_move_event(mut events: EventReader<super::MouseMoveInput>) {
+    for event in events.read() {
+        info!("mouse event: {:?}", event);
     }
 }

@@ -4,6 +4,7 @@ import { PerspectiveCamera, Scene, WebGLRenderer, type Renderer } from "three";
 
 import { processEvent } from "./event";
 import { initScene } from "./example";
+import { registerInputEvents } from "./input";
 import { isWorker } from "./utils";
 
 export type Options = {
@@ -31,6 +32,7 @@ export default class ThreeView {
   _core: Core | undefined;
   _options: Options;
   _stats: Stats | undefined;
+  _eventDisposer: (() => void) | undefined;
   _disposed = false;
   _events: {
     [K in keyof Events]?: Events[K][];
@@ -110,12 +112,19 @@ export default class ThreeView {
 
     this._core = new Core(newId());
     this._core.start();
+    if (!isWorker()) {
+      this._eventDisposer = registerInputEvents(this._core, this.renderer.domElement);
+    }
     this._startMainLoop();
   }
 
   dispose() {
     this._disposed = true;
     if (!isWorker()) window.removeEventListener("resize", this._resize);
+    if (this._eventDisposer) {
+      this._eventDisposer();
+      this._eventDisposer = undefined;
+    }
     if ("dispose" in this.renderer && typeof this.renderer.dispose === "function") {
       this.renderer.dispose();
     }
