@@ -9,6 +9,7 @@ use bevy_ecs::{
     query::Changed,
     system::{Commands, Query, ResMut},
 };
+use bevy_math::Vec3;
 
 #[derive(Debug)]
 pub struct CameraPlugin;
@@ -22,9 +23,10 @@ impl bevy_app::Plugin for CameraPlugin {
 }
 
 fn startup(mut commands: Commands) {
+    let translation = Vec3::new(-2.0, 0.0, 0.0);
     commands.spawn(CameraBundle {
         marker: CameraMerker,
-        transform: Transform::default(),
+        transform: Transform::from_translation(translation),
     });
 }
 
