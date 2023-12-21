@@ -76,8 +76,10 @@ pub fn trigger_mouse_motion_event(
         let delta_y = event.y - res.y;
         res.x = event.x;
         res.y = event.y;
-        motion.send(MouseMotion {
-            delta: Vec2::new(delta_x, delta_y),
-        });
+        if delta_x != 0.0 || delta_y != 0.0 {
+            motion.send(MouseMotion {
+                delta: Vec2::new(delta_x, delta_y),
+            });
+        }
     }
 }
